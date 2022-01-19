@@ -70,13 +70,14 @@ function renderMemes() {
   
      //Assign the value of meme length to the global variable
     memesLength = await callStatic('getMemesLength', []);
+    console.log('memesLength: ', memesLength);
 
     //Loop over every meme to get all their relevant information
     for (let i = 1; i <= memesLength; i++) {
 
         //Make the call to the blockchain to get all relevant information on the meme
         const meme = await callStatic('getMeme', [i]);
-
+        console.log('meme: ', meme);
         //Create meme object with  info from the call and push into the array with all memes
         memeArray.push({
         creatorName: meme.name,
