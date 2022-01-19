@@ -50,17 +50,42 @@ function renderMemes() {
     $('#memeBody').html(rendered);
   }
   
+  //Create a asynchronous read call for our smart contract
+    async function callStatic(func, args) {
+    //Create a new contract instance that we can interact with
+    const contract = await client.getContractInstance(contractSource, {contractAddress});
+    //Make a call to get data of smart contract func, with specefied arguments
+    const calledGet = await contract.call(func, args, {callStatic: true}).catch(e => console.error(e));
+    //Make another call to decode the data received in first call
+    const decodedGet = await calledGet.decode().catch(e => console.error(e));
+  
+    return decodedGet;
+  }
+
   window.addEventListener('load', async () => {
     $('#loader').show();
 
     client = await Ae.Aepp();
-    const contract = await client.getContractInstance(contractSource, {contractAddress});
-    const calledGet = await contract.call('getMemesLength', [], {callStatic: true}).catch(e => console.error(e));
-    console.log('calledGet', calledGet);
+      //First make a call to get to know how may memes have been created and need to be displayed
   
-    const decodedGet = await calledGet.decode().catch(e => console.error(e));
-    console.log('decodedGet', decodedGet);
-  
+     //Assign the value of meme length to the global variable
+    memesLength = await callStatic('getMemesLength', []);
+
+    //Loop over every meme to get all their relevant information
+    for (let i = 1; i <= memesLength; i++) {
+
+        //Make the call to the blockchain to get all relevant information on the meme
+        const meme = await callStatic('getMeme', [i]);
+
+        //Create meme object with  info from the call and push into the array with all memes
+        memeArray.push({
+        creatorName: meme.name,
+        memeUrl: meme.url,
+        index: i,
+        votes: meme.voteCount,
+        })
+    }
+    
     renderMemes();
   
     $("#loader").hide();
