@@ -63,34 +63,20 @@ function renderMemes() {
   }
 
   window.addEventListener('load', async () => {
-    $('#loader').show();
-
-    client = await Ae.Aepp();
-      //First make a call to get to know how may memes have been created and need to be displayed
+    $("#loader").show();
   
-     //Assign the value of meme length to the global variable
-    memesLength = await callStatic('getMemesLength', []);
-    console.log('memesLength: ', memesLength);
-
-    //Loop over every meme to get all their relevant information
-    for (let i = 1; i <= memesLength; i++) {
-
-        //Make the call to the blockchain to get all relevant information on the meme
-        const meme = await callStatic('getMeme', [i]);
-        console.log('meme: ', meme);
-        //Create meme object with  info from the call and push into the array with all memes
-        memeArray.push({
-        creatorName: meme.name,
-        memeUrl: meme.url,
-        index: i,
-        votes: meme.voteCount,
-        })
-    }
-    
+    client = await Ae.Aepp();
+  
+    const contract = await client.getContractInstance(contractSource, {contractAddress});
+    const calledGet = await contract.call('getMemesLength', [], {callStatic: true}).catch(e => console.error(e));
+    console.log('calledGet', calledGet);
+  
+    const decodedGet = await calledGet.decode().catch(e => console.error(e));
+    console.log('decodedGet', decodedGet);
+  
     renderMemes();
   
     $("#loader").hide();
-
   });
   
   jQuery("#memeBody").on("click", ".voteBtn", async function(event){
