@@ -36,7 +36,7 @@ payable contract AleVote =
     let updatedMemes = state.memes{ [index].voteCount = updatedVoteCount}
     put(state { memes = updatedMemes })`;
 
-const contractAddress = 'ak_Nv5iC9hU8NQPrihqDYu57g5zAhboLCPZ1GB5VRYvrRfAkyPyf'
+const contractAddress = 'ct_ez2eMyJFU68rQn9W54ewQhyApWRDQarFLhozWU3h38TRF7jeJ';
 
 var client = null;
 var memeArray = [];
@@ -53,7 +53,7 @@ function renderMemes() {
   window.addEventListener('load', async () => {
     $('#loader').show();
 
-    client = Ae.Aepp();
+    client = await Ae.Aepp();
     const contract = await client.getContractInstance(contractSource, {contractAddress});
     const calledGet = await contract.call('getMemesLength', [], {callStatic: true}).catch(e => console.error(e));
     console.log('calledGet', calledGet);
