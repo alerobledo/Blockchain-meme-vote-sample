@@ -1,4 +1,4 @@
-const contractSource = `@compiler >= 4
+const CONTRACT_SOURCE = `@compiler >= 4
 
 payable contract AleVote =
   
@@ -36,7 +36,10 @@ payable contract AleVote =
     let updatedMemes = state.memes{ [index].voteCount = updatedVoteCount}
     put(state { memes = updatedMemes })`;
 
-const contractAddress = 'ct_ez2eMyJFU68rQn9W54ewQhyApWRDQarFLhozWU3h38TRF7jeJ';
+const contractAddress = 'ct_iEMxnmk2mxbkzC3oJaGD22U5XnWWRhVVJ4qS4v5cgTyVKKgjv';
+
+const SECRET_KEY = '984ed0b5bdfa38492befd858f6b2bdd813fcec2e9135c8fd76f72b156b42a36031c2d93d375bfb518b93dd2db51f2877576b66077e3fea930434258e31d8a531';
+const PUBLIC_KEY = 'ak_Nv5iC9hU8NQPrihqDYu57g5zAhboLCPZ1GB5VRYvrRfAkyPyf';
 
 var client = null;
 var memeArray = [];
@@ -64,7 +67,33 @@ function renderMemes() {
 
   window.addEventListener('load', async () => {
     $("#loader").show();
-  
+
+    node = await Ae.Node({ url: 'https://testnet.aeternity.io' });
+    const account = Ae.MemoryAccount({
+        // provide a valid keypair with your secretKey and publicKey
+        keypair: { secretKey: SECRET_KEY, publicKey: PUBLIC_KEY }
+      })
+
+      const client = await Ae.Universal({
+        nodes: [
+          { name: 'testnet', instance: node }
+        ],
+        compilerUrl: 'https://compiler.aepps.com', // ideally host your own compiler
+        accounts: [account]
+      })
+    
+    height = await client.height();
+    console.log("Current Block Height sync:" + height)                                
+
+    const contractInstance = await client.getContractInstance({ source: CONTRACT_SOURCE, contractAddress: contractAddress })
+    console.log("contract:" + contractInstance)
+
+    const memesLegnth = await contractInstance.call('getMemesLength', [], {callStatic: true}).catch(e => console.error(e));
+    //const memesLegnth = await contractInstance.methods.getMemesLength();
+    console.log('memesLegnth', memesLegnth.decodedResult);
+    
+
+  /*
     client = await Ae.Aepp();
   
     const contract = await client.getContractInstance(contractSource, {contractAddress});
@@ -73,7 +102,7 @@ function renderMemes() {
   
     const decodedGet = await calledGet.decode().catch(e => console.error(e));
     console.log('decodedGet', decodedGet);
-  
+  */
     renderMemes();
   
     $("#loader").hide();
