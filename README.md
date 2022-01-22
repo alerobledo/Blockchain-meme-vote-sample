@@ -1,7 +1,7 @@
 # Blockchain-meme-vote-sample
 
 POC using blockchain to make an app for vote.
-It was made based on DACADE tutorial (https://testnet.faucet.aepps.com/), but it was modified in order to make it works with latest version of aeternity browser dsk.
+It was made based on DACADE tutorial (https://dacade.org/), but it was modified in order to make it works with latest version of aeternity browser dsk.
 
 
 Blockchain: AETERNITY ( https://aeternity.com/ )
