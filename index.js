@@ -42,6 +42,8 @@ const SECRET_KEY = '984ed0b5bdfa38492befd858f6b2bdd813fcec2e9135c8fd76f72b156b42
 const PUBLIC_KEY = 'ak_Nv5iC9hU8NQPrihqDYu57g5zAhboLCPZ1GB5VRYvrRfAkyPyf';
 
 var client = null;
+var contractInstance;
+
 var memeArray = [];
 var memesLength = 0;
 
@@ -54,13 +56,11 @@ function renderMemes() {
   }
   
   //Create a asynchronous read call for our smart contract
-    async function callStatic(func, args) {
-    //Create a new contract instance that we can interact with
-    const contract = await client.getContractInstance(contractSource, {contractAddress});
+  async function callStatic(func, args) {
     //Make a call to get data of smart contract func, with specefied arguments
-    const calledGet = await contract.call(func, args, {callStatic: true}).catch(e => console.error(e));
+    const calledGet = await contractInstance.call(func, args, {callStatic: true}).catch(e => console.error(e));
     //Make another call to decode the data received in first call
-    const decodedGet = await calledGet.decode().catch(e => console.error(e));
+    const decodedGet = await calledGet.decodedResult;
   
     return decodedGet;
   }
@@ -74,35 +74,49 @@ function renderMemes() {
         keypair: { secretKey: SECRET_KEY, publicKey: PUBLIC_KEY }
       })
 
-      const client = await Ae.Universal({
+      //create client
+      client = await Ae.Universal({
         nodes: [
           { name: 'testnet', instance: node }
         ],
         compilerUrl: 'https://compiler.aepps.com', // ideally host your own compiler
         accounts: [account]
       })
-    
+
+      //create contract instance
+      contractInstance = await client.getContractInstance({ source: CONTRACT_SOURCE, contractAddress: contractAddress })
+      console.log("contract:" + contractInstance)
+  
+      //First make a call to get to know how may memes have been created and need to be displayed
+  //Assign the value of meme length to the global variable
+  memesLength = await callStatic('getMemesLength', []);
+
+  //Loop over every meme to get all their relevant information
+  for (let i = 1; i <= memesLength; i++) {
+
+    //Make the call to the blockchain to get all relevant information on the meme
+    const meme = await callStatic('getMeme', [i]);
+
+    //Create meme object with  info from the call and push into the array with all memes
+    memeArray.push({
+    creatorName: meme.name,
+    memeUrl: meme.url,
+    index: i,
+    votes: meme.voteCount,
+    })
+  }
+    /*
     height = await client.height();
     console.log("Current Block Height sync:" + height)                                
 
-    const contractInstance = await client.getContractInstance({ source: CONTRACT_SOURCE, contractAddress: contractAddress })
+    contractInstance = await client.getContractInstance({ source: CONTRACT_SOURCE, contractAddress: contractAddress })
     console.log("contract:" + contractInstance)
 
     const memesLegnth = await contractInstance.call('getMemesLength', [], {callStatic: true}).catch(e => console.error(e));
     //const memesLegnth = await contractInstance.methods.getMemesLength();
     console.log('memesLegnth', memesLegnth.decodedResult);
-    
+    */
 
-  /*
-    client = await Ae.Aepp();
-  
-    const contract = await client.getContractInstance(contractSource, {contractAddress});
-    const calledGet = await contract.call('getMemesLength', [], {callStatic: true}).catch(e => console.error(e));
-    console.log('calledGet', calledGet);
-  
-    const decodedGet = await calledGet.decode().catch(e => console.error(e));
-    console.log('decodedGet', decodedGet);
-  */
     renderMemes();
   
     $("#loader").hide();
