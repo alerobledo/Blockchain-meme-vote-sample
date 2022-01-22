@@ -139,15 +139,24 @@ jQuery("#memeBody").on("click", ".voteBtn", async function(event){
     $("#loader").hide();
   });
 
-  $('#registerBtn').click(async function(){
-    var name = ($('#regName').val()),
-        url = ($('#regUrl').val());
+//If someone clicks to register a meme, get the input and execute the registerCall
+$('#registerBtn').click(async function(){
+    $("#loader").show();
+    //Create two new let variables which get the values from the input fields
+    const name = ($('#regName').val()),
+          url = ($('#regUrl').val());
   
+    //Make the contract call to register the meme with the newly passed values
+    await contractCall('registerMeme', [url, name], 0);
+  
+    //Add the new created memeobject to our memearray
     memeArray.push({
       creatorName: name,
       memeUrl: url,
       index: memeArray.length+1,
-      votes: 0
+      votes: 0,
     })
+  
     renderMemes();
+    $("#loader").hide();
   });
